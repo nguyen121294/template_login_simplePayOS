@@ -1,0 +1,33 @@
+# CHI TIẾT NHIỆM VỤ CÁC FILE TRONG DỰ ÁN
+
+Dưới đây là mô tả chi tiết nhiệm vụ và chức năng của từng file trong dự án Next.js SaaS Starter này:
+
+## 1. Thư mục gốc (Root Directory)
+- `package.json`: Chứa thông tin về dự án, danh sách các thư viện hỗ trợ (dependencies) và các câu lệnh thực thi (scripts) như build, dev, lint.
+- `drizzle.config.ts`: File cấu hình cho Drizzle ORM, dùng để quản lý schema database và tạo các bản cập nhật (migrations).
+- `next.config.mjs`: Cấu hình cho framework Next.js (ví dụ: tối ưu hình ảnh, các biến môi trường).
+- `src/middleware.ts`: Chạy trên mọi request để kiểm tra hoặc cập nhật session của người dùng (thông qua Supabase middleware).
+
+## 2. Thư mục Cơ sở dữ liệu (src/db)
+- `src/db/index.ts`: Khởi tạo kết nối với cơ sở dữ liệu PostgreSQL sử dụng thư viện `postgres.js` và `drizzle-orm`.
+- `src/db/schema.ts`: Định nghĩa cấu trúc các bảng trong cơ sở dữ liệu, bao gồm bảng `users` (thông tin người dùng, trạng thái gói dịch vụ) và bảng `payments` (lịch sử thanh toán qua PayOS).
+
+## 3. Thư mục Thư viện & Tiện ích (src/lib)
+- `src/lib/payos.ts`: Khởi tạo đối tượng PayOS với API Key và Client ID để thực hiện các giao dịch thanh toán.
+- `src/lib/supabase/client.ts`: Cấu hình Supabase client để sử dụng ở phía Client Component.
+- `src/lib/supabase/server.ts`: Cấu hình Supabase client để sử dụng ở phía Server Component, Server Action hoặc Route Handler.
+- `src/lib/supabase/middleware.ts`: Xử lý việc làm mới (refresh) session của người dùng tự động khi họ truy cập ứng dụng.
+
+## 4. Các Tuyến đường & Giao diện (src/app)
+- `src/app/layout.tsx`: Layout gốc của ứng dụng, chứa cấu trúc HTML cơ bản và các font chữ.
+- `src/app/page.tsx`: Trang chủ (Landing Page) giới thiệu các tính năng của dự án.
+- `src/app/globals.css`: File định nghĩa các style CSS toàn cục, sử dụng Tailwind CSS.
+- `src/app/login/page.tsx`: Trang đăng nhập, hỗ trợ đăng nhập qua email (Magic Link).
+- `src/app/dashboard/page.tsx`: Trang quản lý cá nhân sau khi đăng nhập, hiển thị trạng thái gói dịch vụ (Free/PRO) và các tính năng tương ứng.
+- `src/app/success/page.tsx`: Trang thông báo khi người dùng thực hiện thanh toán thành công.
+
+## 5. Các API & Route Handlers
+- `src/app/checkout/route.ts`: API tạo yêu cầu thanh toán với PayOS, sau đó chuyển hướng người dùng đến trang thanh toán của PayOS.
+- `src/app/api/webhook/payos/route.ts`: Điểm tiếp nhận thông báo (webhook) từ PayOS. Khi thông báo thanh toán thành công, nó sẽ cập nhật trạng thái gói dịch vụ của người dùng trong database.
+- `src/app/auth/callback/route.ts`: Xử lý mã xác thực sau khi người dùng click vào link đăng nhập từ email.
+- `src/app/auth/signout/route.ts`: Xử lý yêu cầu đăng xuất người dùng khỏi ứng dụng.
