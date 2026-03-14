@@ -65,7 +65,7 @@ export default async function DashboardPage() {
               </div>
               <p className="mt-2 text-sm text-zinc-400">
                 {isSubscribed
-                  ? `Your subscription expires on ${new Date(dbUser.subscriptionExpiresAt!).toLocaleDateString()}`
+                  ? `Your subscription expires on ${new Date(dbUser?.subscriptionExpiresAt!).toLocaleDateString()}`
                   : 'Upgrade to PRO to unlock all features'}
               </p>
             </div>
@@ -84,11 +84,11 @@ export default async function DashboardPage() {
                 </button>
               ) : (
                 <a
-                  href="/checkout"
+                  href="/pricing"
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-center font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
                 >
                   <CreditCard className="h-5 w-5" />
-                  Upgrade to PRO
+                  Xem các gói
                 </a>
               )}
             </div>

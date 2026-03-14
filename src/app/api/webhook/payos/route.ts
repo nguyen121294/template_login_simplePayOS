@@ -3,17 +3,18 @@ import { db } from '@/db';
 import { profiles, payments } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { getPlan } from '@/lib/plans';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  
-  // Verify webhook signature (optional but recommended in production)
+
+  // Verify webhook signature
   // const verifiedData = payos.webhooks.verifyPaymentWebhookData(body);
-  
+
   const { orderCode, status } = body.data || body;
 
   if (status === 'PAID') {
-    // 1. Find the payment record to get the userId
+    // 1. Find the payment record to get userId and plan
     const payment = await db.query.payments.findFirst({
       where: eq(payments.id, String(orderCode)),
     });
@@ -24,16 +25,38 @@ export async function POST(request: Request) {
         .set({ status: 'paid' })
         .where(eq(payments.id, String(orderCode)));
 
-      // 3. Update user subscription (e.g., 30 days from now)
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + 30);
+      // 3. Look up plan to determine expiry days
+      const plan = getPlan(payment.plan ?? 'plus');
+      const days = plan?.days ?? 30;
 
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + days);
+
+      // 4. Update user subscription with correct expiry and plan info
       await db.update(profiles)
         .set({
           subscriptionStatus: 'active',
           subscriptionExpiresAt: expirationDate,
+          subscriptionId: plan?.id ?? payment.plan,
         })
         .where(eq(profiles.id, payment.userId));
+
+      console.log(`[Webhook] User ${payment.userId} subscribed to "${plan?.name}" for ${days} days. Expires: ${expirationDate.toISOString()}`);
+    }
+  } else if (status === 'CANCELED' || status === 'CANCELLED' || status === 'FAILED') {
+    // 5. User canceled or payment failed
+    // Find payment record
+    const payment = await db.query.payments.findFirst({
+      where: eq(payments.id, String(orderCode)),
+    });
+    
+    // Only update if it's currently pending
+    if (payment && payment.status === 'pending') {
+      await db.update(payments)
+        .set({ status: 'cancelled' })
+        .where(eq(payments.id, String(orderCode)));
+        
+      console.log(`[Webhook] Order ${orderCode} marked as failed/cancelled.`);
     }
   }
 

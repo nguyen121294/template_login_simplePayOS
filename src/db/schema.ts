@@ -14,5 +14,6 @@ export const payments = table('payments', {
   userId: text('user_id').references(() => profiles.id),
   amount: doublePrecision('amount').notNull(),
   status: text('status').notNull(), // pending, paid, cancelled
+  plan: text('plan').notNull().default('plus'), // free, plus, pro, premium
   createdAt: timestamp('created_at').defaultNow(),
 });
