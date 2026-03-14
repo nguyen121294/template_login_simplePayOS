@@ -3,7 +3,7 @@ import { payos } from '@/lib/payos';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { payments } from '@/db/schema';
-import { getPlan, PLANS } from '@/lib/plans';
+import { getPlan } from '@/lib/plans';
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   // Read plan from query string, default to 'plus'
   const { searchParams } = new URL(request.url);
   const planId = searchParams.get('plan') ?? 'plus';
-  const plan = getPlan(planId);
+  const plan = await getPlan(planId);
 
   if (!plan || plan.id === 'free') {
     return NextResponse.redirect(new URL('/pricing', request.url));

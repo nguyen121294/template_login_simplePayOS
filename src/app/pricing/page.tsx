@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { Check, Sparkles, Zap, Shield, Star } from 'lucide-react';
-import { PLANS } from '@/lib/plans';
-import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { getPlans } from '@/lib/plans';
 
 const planIcons = {
   free: Shield,
@@ -50,20 +48,8 @@ function formatDuration(days: number) {
   return `/ ${days} ngày`;
 }
 
-export default function PricingPage() {
-  const plans = Object.values(PLANS);
-  const searchParams = useSearchParams();
-  const cancelOrder = searchParams.get('cancelOrder');
-
-  useEffect(() => {
-    if (cancelOrder) {
-      fetch('/api/cancel-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderCode: cancelOrder }),
-      }).catch(console.error);
-    }
-  }, [cancelOrder]);
+export default async function PricingPage() {
+  const plans = await getPlans();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-indigo-500/30">
@@ -91,10 +77,10 @@ export default function PricingPage() {
       <main className="mx-auto max-w-6xl px-4 pb-24">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => {
-            const Icon = planIcons[plan.id as keyof typeof planIcons];
-            const gradient = planGradients[plan.id as keyof typeof planGradients];
-            const border = planBorderColors[plan.id as keyof typeof planBorderColors];
-            const bg = planBgColors[plan.id as keyof typeof planBgColors];
+            const Icon = planIcons[plan.id as keyof typeof planIcons] || Shield;
+            const gradient = planGradients[plan.id as keyof typeof planGradients] || planGradients.free;
+            const border = planBorderColors[plan.id as keyof typeof planBorderColors] || planBorderColors.free;
+            const bg = planBgColors[plan.id as keyof typeof planBgColors] || planBgColors.free;
             const isPro = plan.id === 'pro';
 
             return (

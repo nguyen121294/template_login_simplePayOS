@@ -8,8 +8,15 @@ import { getPlan } from '@/lib/plans';
 export async function POST(request: Request) {
   const body = await request.json();
 
-  // Verify webhook signature
-  // const verifiedData = payos.webhooks.verifyPaymentWebhookData(body);
+  // Verify webhook signature (Crucial for production security)
+  try {
+    // PayOS SDK requires the body as-is for verification
+    const verifiedData = payos.verifyPaymentWebhookData(body);
+    // Use the verified data for processing
+  } catch (err) {
+    console.error('[Webhook] Invalid signature');
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+  }
 
   const { orderCode, status } = body.data || body;
 
@@ -26,7 +33,7 @@ export async function POST(request: Request) {
         .where(eq(payments.id, String(orderCode)));
 
       // 3. Look up plan to determine expiry days
-      const plan = getPlan(payment.plan ?? 'plus');
+      const plan = await getPlan(payment.plan ?? 'plus');
       const days = plan?.days ?? 30;
 
       const expirationDate = new Date();
