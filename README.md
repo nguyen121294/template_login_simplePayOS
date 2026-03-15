@@ -69,6 +69,28 @@ Dự án này được tối ưu hóa để chạy tốt nhất trên **Vercel**
 
 ---
 
+## Triển khai trên Netlify
+
+Nếu bạn muốn sử dụng Netlify, hãy làm theo các bước sau:
+
+### 1. Kết nối và Build
+- Đăng nhập vào Netlify và chọn **Add new site** -> **Import an existing project**.
+- Kết nối với Repository của bạn.
+- Netlify sẽ tự động nhận diện dự án Next.js. Kiểm tra các thông số:
+    - **Build command**: `npm run build`
+    - **Publish directory**: `.next`
+- Nếu bạn dùng Next.js 13+ hoặc mới hơn, Netlify sẽ tự động cài đặt `Next.js Runtime`.
+
+### 2. Cấu hình Biến môi trường
+- Vào **Site settings** -> **Environment variables**.
+- Thêm đầy đủ các biến môi trường tương tự như trong `.env.local`.
+- Đặc biệt lưu ý `NEXT_PUBLIC_APP_URL` phải là domain Netlify của bạn (ví dụ: `https://your-site.netlify.app`).
+
+### 3. Cấu hình Supabase Auth
+- Tương tự như Vercel, bạn cần thêm URL của Netlify vào **Site URL** và **Redirect URLs** trong Dashboard Supabase.
+
+---
+
 ## Cấu hình PayOS Webhook
 
 Để hệ thống tự động cập nhật trạng thái gói cước (Upgrade lên Pro) ngay sau khi khách hàng thanh toán xong, bạn **bắt buộc** phải cấu hình Webhook:

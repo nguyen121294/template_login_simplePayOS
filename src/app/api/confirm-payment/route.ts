@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       .where(eq(payments.id, String(orderCode)));
 
     // 4. Calculate subscription expiry from plan
-    const plan = getPlan(payment.plan ?? 'plus');
+    const plan = await getPlan(payment.plan ?? 'plus');
     const days = plan?.days ?? 30;
 
     const expirationDate = new Date();
