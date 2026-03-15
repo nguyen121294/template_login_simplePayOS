@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Check, Sparkles, Zap, Shield, Star } from 'lucide-react';
 import { getPlans } from '@/lib/plans';
 
+export const dynamic = 'force-dynamic';
+
 const planIcons = {
   free: Shield,
   plus: Zap,
