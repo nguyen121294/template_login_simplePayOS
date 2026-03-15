@@ -6,27 +6,46 @@ import { NextResponse } from 'next/server';
 import { getPlan } from '@/lib/plans';
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    console.error('[Webhook] Failed to parse JSON body');
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
 
   // Verify webhook signature (Crucial for production security)
+  let verifiedData;
   try {
     // PayOS SDK requires the body as-is for verification
-    const verifiedData = (payos as any).verifyPaymentWebhookData(body);
-    // Use the verified data for processing
+    verifiedData = (payos as any).verifyPaymentWebhookData(body);
+    console.log('[Webhook] Signature verified successfully');
   } catch (err) {
-    console.error('[Webhook] Invalid signature');
+    console.error('[Webhook] Invalid signature verification failed');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  const { orderCode, status } = body.data || body;
+  // Use the verified data for processing
+  const { orderCode, status } = verifiedData;
+  console.log(`[Webhook] Processing order ${orderCode} with status: ${status}`);
 
   if (status === 'PAID') {
-    // 1. Find the payment record to get userId and plan
-    const payment = await db.query.payments.findFirst({
-      where: eq(payments.id, String(orderCode)),
-    });
+    try {
+      // 1. Find the payment record to get userId and plan
+      const payment = await db.query.payments.findFirst({
+        where: eq(payments.id, String(orderCode)),
+      });
 
-    if (payment && payment.userId) {
+      if (!payment) {
+        console.error(`[Webhook] Payment record not found for order ${orderCode}`);
+        return NextResponse.json({ success: true }); // Still return 200 to PayOS
+      }
+
+      if (!payment.userId) {
+        console.error(`[Webhook] No userId associated with order ${orderCode}`);
+        return NextResponse.json({ success: true });
+      }
+
       // 2. Update payment status
       await db.update(payments)
         .set({ status: 'paid' })
@@ -48,22 +67,27 @@ export async function POST(request: Request) {
         })
         .where(eq(profiles.id, payment.userId));
 
-      console.log(`[Webhook] User ${payment.userId} subscribed to "${plan?.name}" for ${days} days. Expires: ${expirationDate.toISOString()}`);
+      console.log(`[Webhook] SUCCESS: User ${payment.userId} subscribed to "${plan?.name || payment.plan}". Expires: ${expirationDate.toISOString()}`);
+    } catch (dbError) {
+      console.error(`[Webhook] Database error processing order ${orderCode}:`, dbError);
+      // We return 500 so PayOS might retry the webhook later
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
   } else if (status === 'CANCELED' || status === 'CANCELLED' || status === 'FAILED') {
-    // 5. User canceled or payment failed
-    // Find payment record
-    const payment = await db.query.payments.findFirst({
-      where: eq(payments.id, String(orderCode)),
-    });
-    
-    // Only update if it's currently pending
-    if (payment && payment.status === 'pending') {
-      await db.update(payments)
-        .set({ status: 'cancelled' })
-        .where(eq(payments.id, String(orderCode)));
-        
-      console.log(`[Webhook] Order ${orderCode} marked as failed/cancelled.`);
+    try {
+      const payment = await db.query.payments.findFirst({
+        where: eq(payments.id, String(orderCode)),
+      });
+      
+      if (payment && payment.status === 'pending') {
+        await db.update(payments)
+          .set({ status: 'cancelled' })
+          .where(eq(payments.id, String(orderCode)));
+          
+        console.log(`[Webhook] Order ${orderCode} marked as failed/cancelled.`);
+      }
+    } catch (e) {
+      console.error(`[Webhook] Error updating cancelled state for ${orderCode}:`, e);
     }
   }
 

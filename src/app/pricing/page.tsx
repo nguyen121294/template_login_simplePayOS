@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Check, Sparkles, Zap, Shield, Star } from 'lucide-react';
 import { getPlans } from '@/lib/plans';
+import CheckoutButton from './CheckoutButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,14 +145,11 @@ export default async function PricingPage() {
                     Bắt đầu miễn phí
                   </Link>
                 ) : (
-                  <Link
-                    href={`/checkout?plan=${plan.id}`}
-                    className={`mb-6 block rounded-xl bg-gradient-to-r ${gradient} px-4 py-3 text-center text-sm font-bold text-white shadow-lg transition hover:opacity-90 active:scale-[0.98] ${
-                      isPro ? 'shadow-indigo-500/30' : ''
-                    }`}
-                  >
-                    Nâng cấp ngay
-                  </Link>
+                  <CheckoutButton 
+                    planId={plan.id} 
+                    gradient={gradient} 
+                    isPro={isPro} 
+                  />
                 )}
 
                 {/* Divider */}
