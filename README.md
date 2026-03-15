@@ -43,14 +43,19 @@ Cập nhật các thông tin sau:
 ### 3. Đồng bộ Database Schema
 Sử dụng Drizzle để cập nhật cấu trúc bảng vào database của bạn:
 ```bash
-npm run drizzle-kit push
+npm run db:push
 ```
+*Hoặc nếu bạn chưa tiện thêm script vào package.json, có thể dùng:* `npx drizzle-kit push`
 
 ### 4. Chạy server phát triển
 ```bash
 npm run dev
 ```
 Mở [http://localhost:3000](http://localhost:3000) trên trình duyệt để kiểm tra.
+
+> [!TIP]
+> **Lỗi "TypeError: Cannot read properties of undefined (reading 'replace')"**:
+> Nếu bạn gặp lỗi này khi chạy `db:push`, hãy kiểm tra `DATABASE_URL` trong `.env.local`. Nếu bạn dùng Supabase, hãy đổi cổng từ **6543** (Transaction Mode) sang **5432** (Session Mode). Drizzle Kit cần kết nối Session để đọc cấu trúc database chính xác hơn.
 
 ---
 
