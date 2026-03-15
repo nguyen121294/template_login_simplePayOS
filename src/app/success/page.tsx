@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 type Status = 'loading' | 'success' | 'already_paid' | 'failed' | 'no_order';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const orderCode = searchParams.get('orderCode');
   const [status, setStatus] = useState<Status>(orderCode ? 'loading' : 'no_order');
@@ -111,5 +111,20 @@ export default function SuccessPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-4">
+        <div className="w-full max-w-md text-center rounded-2xl border border-zinc-800 bg-zinc-900 p-12 shadow-2xl">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-400" />
+          <h1 className="mt-8 text-2xl font-bold text-white">Đang tải...</h1>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
