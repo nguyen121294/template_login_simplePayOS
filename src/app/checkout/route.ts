@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const orderCode = Number(String(Date.now()).slice(-9));
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 
   const paymentLinkData = {
     orderCode: orderCode,
