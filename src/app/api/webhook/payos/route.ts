@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   // Verify webhook signature (Crucial for production security)
   try {
     // PayOS SDK requires the body as-is for verification
-    const verifiedData = payos.verifyPaymentWebhookData(body);
+    const verifiedData = (payos as any).verifyPaymentWebhookData(body);
     // Use the verified data for processing
   } catch (err) {
     console.error('[Webhook] Invalid signature');
