@@ -71,3 +71,45 @@ export async function updatePassword(formData: FormData) {
 
   return { success: true, message: 'Đổi mật khẩu thành công!' };
 }
+
+export async function deactivateAccount(formData?: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Không tìm thấy phiên đăng nhập' };
+  }
+
+  try {
+    await db.update(profiles)
+      .set({ status: 'inactive' })
+      .where(eq(profiles.id, user.id));
+
+    revalidatePath('/dashboard', 'layout');
+    return { success: true, message: 'Tài khoản đã được vô hiệu hóa' };
+  } catch (error) {
+    console.error('Lỗi khi vô hiệu hóa tài khoản:', error);
+    return { error: 'Không thể vô hiệu hóa tài khoản lúc này.' };
+  }
+}
+
+export async function reactivateAccount(formData?: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Không tìm thấy phiên đăng nhập' };
+  }
+
+  try {
+    await db.update(profiles)
+      .set({ status: 'active' })
+      .where(eq(profiles.id, user.id));
+
+    revalidatePath('/dashboard', 'layout');
+    return { success: true };
+  } catch (error) {
+    console.error('Lỗi khi kích hoạt lại tài khoản:', error);
+    return { error: 'Không thể kích hoạt tài khoản lúc này.' };
+  }
+}

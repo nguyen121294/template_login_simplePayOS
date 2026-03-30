@@ -21,22 +21,7 @@ export default async function DashboardPage() {
     // console.error('Dashboard DB Query Error:', error);
   }
 
-  if (dbUser?.status === 'locked') {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-zinc-900 border border-red-500/20 rounded-2xl p-8 text-center shadow-2xl">
-          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Tài khoản bị khóa</h1>
-          <p className="text-zinc-400 mb-6">Tài khoản của bạn đã bị quản trị viên khóa. Vui lòng liên hệ bộ phận hỗ trợ.</p>
-          <form action="/auth/signout" method="post">
-            <button type="submit" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition">
-              Đăng xuất
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
+  // The 'locked' user check has been moved to src/app/dashboard/layout.tsx
 
   const isSubscribed = dbUser?.subscriptionStatus === 'active' &&
     dbUser?.subscriptionExpiresAt &&

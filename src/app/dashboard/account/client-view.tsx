@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Save, KeyRound, ShieldCheck } from 'lucide-react';
-import { updateProfile, updatePassword } from './actions';
+import { updateProfile, updatePassword, deactivateAccount } from './actions';
 
 interface Props {
   email: string;
@@ -229,6 +229,33 @@ export default function AccountClientView({
               Cập nhật Mật khẩu
             </button>
           </div>
+        </form>
+      </section>
+
+      {/* 4. Vùng nguy hiểm */}
+      <section className="rounded-2xl border border-red-900/30 bg-red-950/10 p-8 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <h2 className="text-xl font-bold text-red-500">Vùng Nguỵ Hiểm</h2>
+        </div>
+        <p className="text-zinc-400 mb-6 text-sm">
+          Vô hiệu hóa tài khoản sẽ đăng xuất bạn ra khỏi hệ thống và đóng băng mọi hoạt động. 
+          Các hóa đơn và lịch sử của bạn vẫn được giữ nguyên. Cân nhắc kỹ trước khi thực hiện.
+        </p>
+
+        <form action={async () => {
+          if (window.confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không? Mọi phiên đăng nhập sẽ bị tự động thoát ra.')) {
+            await deactivateAccount()
+          }
+        }}>
+          <button
+            type="submit"
+            className="flex items-center gap-2 rounded-lg bg-red-600/10 border border-red-500/30 px-6 py-3 text-sm font-bold text-red-500 transition hover:bg-red-600/20 active:scale-95"
+          >
+            Vô hiệu hóa Tài khoản
+          </button>
         </form>
       </section>
 
