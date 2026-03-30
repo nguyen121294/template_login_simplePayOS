@@ -55,8 +55,11 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-400">{user.email}</span>
+            <a href="/dashboard/account" className="text-sm font-medium text-zinc-300 hover:text-white transition">
+              Cài đặt
+            </a>
             <form action="/auth/signout" method="post">
-              <button type="submit" className="text-zinc-400 hover:text-white transition">
+              <button type="submit" className="text-zinc-400 hover:text-white transition" title="Đăng xuất">
                 <LogOut className="h-5 w-5" />
               </button>
             </form>

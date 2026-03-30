@@ -9,6 +9,8 @@ type AuthMode = 'sign_in' | 'sign_up' | 'forgot_password';
 
 export default function LoginPage() {
   const [mode, setMode] = useState<AuthMode>('sign_in');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,6 +68,10 @@ export default function LoginPage() {
           email,
           password,
           options: {
+            data: {
+              firstName,
+              lastName
+            },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           }
         });
@@ -92,6 +98,8 @@ export default function LoginPage() {
   useEffect(() => {
     setError(null);
     setMessage(null);
+    setFirstName('');
+    setLastName('');
     setPassword('');
     setConfirmPassword('');
   }, [mode]);
@@ -148,6 +156,33 @@ export default function LoginPage() {
               placeholder="name@example.com"
             />
           </div>
+
+          {mode === 'sign_up' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Họ</label>
+                <input
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="block w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-white placeholder-zinc-500 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Nguyễn Văn"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Tên</label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="block w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-white placeholder-zinc-500 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="A"
+                />
+              </div>
+            </div>
+          )}
 
           {mode !== 'forgot_password' && (
             <div className="space-y-1.5 relative">

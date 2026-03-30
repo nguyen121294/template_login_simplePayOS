@@ -3,6 +3,8 @@ import { pgTable as table, text, timestamp, boolean, doublePrecision, integer } 
 export const profiles = table('profiles', {
   id: text('id').primaryKey(), // Supabase user id
   email: text('email').notNull(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
   subscriptionId: text('subscription_id'),
   subscriptionStatus: text('subscription_status').default('inactive'), // active, inactive, past_due
   subscriptionExpiresAt: timestamp('subscription_expires_at'),

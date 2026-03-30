@@ -16,6 +16,8 @@ async function main() {
     console.log('Creating plans table...');
     await sql.unsafe(`
       ALTER TABLE profiles ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
+      ALTER TABLE profiles ADD COLUMN IF NOT EXISTS first_name TEXT;
+      ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_name TEXT;
       CREATE TABLE IF NOT EXISTS plans (
         "id" text PRIMARY KEY NOT NULL,
         "name" text NOT NULL,

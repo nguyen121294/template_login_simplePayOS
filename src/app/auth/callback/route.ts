@@ -46,6 +46,8 @@ export async function GET(request: Request) {
         .values({
           id: user.id,
           email: user.email!,
+          firstName: user.user_metadata?.firstName || null,
+          lastName: user.user_metadata?.lastName || null,
         })
         .onConflictDoUpdate({
           target: profiles.id,
