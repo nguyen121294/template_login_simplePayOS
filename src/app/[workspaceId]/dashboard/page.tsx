@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { CreditCard, CheckCircle2, XCircle } from 'lucide-react';
-import { checkWorkspaceAccess } from '@/lib/workspace-utils';
+import { CreditCard, CheckCircle2, XCircle, FileType, Bot } from 'lucide-react';
+import { checkWorkspaceAccess, checkFeatureAccess } from '@/lib/workspace-utils';
 
 export default async function DashboardPage({
   params,
@@ -22,8 +22,12 @@ export default async function DashboardPage({
     dbUser = results[0];
   } catch (error) {}
 
-  // Thay vì check subscription cá nhân như cũ, check quyền VIP của Workspace hiện hành
+  // Thay vì check subscription cá nhân như cũ, check quyền VIP của Workspace hiện hành (dùng cho thông báo cấp độ)
   const isVipWorkspace = await checkWorkspaceAccess(workspaceId);
+
+  // [TÍNH NĂNG MỚI] Check chi tiết Từng Feature riêng biệt
+  const canExportPdf = await checkFeatureAccess(workspaceId, 'export_pdf');
+  const canUseAi = await checkFeatureAccess(workspaceId, 'ai_model');
 
   // Xem thử tài khoản cá nhân của người dùng NÀY có phải VIP không (để hiện nút Mua gói)
   const isPersonalVip = dbUser?.subscriptionStatus === 'active' &&
@@ -89,23 +93,49 @@ export default async function DashboardPage({
       </div>
 
       {/* Pro Content */}
-      <div className={`mt-12 rounded-2xl border p-12 text-center transition-all ${isVipWorkspace ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-dashed border-zinc-800'}`}>
-        {isVipWorkspace ? (
-           <>
-              <h2 className="text-2xl font-bold text-indigo-400">🔥 Khu vực Premium Đã Mở Khóa</h2>
-              <p className="mt-4 text-zinc-400">Do đang ở trong Vùng VIP, bạn (dù là user Free) cũng có thể thấy nội dung sịn sò này! Hãy quẩy đi Bờ rồ!</p>
-              
-              <div className="mt-8 flex justify-center gap-4">
-                 <button className="bg-white text-black px-6 py-3 rounded-full font-bold">Chạy AI Models</button>
-                 <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-full font-bold">Export PDF Data Khủng</button>
-              </div>
-           </>
-        ) : (
-           <>
-               <h2 className="text-2xl font-bold text-zinc-600">Khu Vực Bị Khóa</h2>
-               <p className="mt-4 text-zinc-500">Tính năng này yêu cầu Chủ phòng phải mua gói VIP.</p>
-           </>
-        )}
+      <h2 className="text-2xl font-bold mt-12 mb-6 text-zinc-300 border-b border-zinc-800 pb-4">Công cụ trong phòng làm việc</h2>
+      <div className="grid md:grid-cols-2 gap-6">
+         {/* Tính năng AI */}
+         <div className={`rounded-2xl border p-8 transition-all relative overflow-hidden ${canUseAi ? 'border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10' : 'border-dashed border-zinc-800 bg-zinc-900/50'}`}>
+            <div className="flex justify-between items-start mb-4">
+               <Bot className={`w-8 h-8 ${canUseAi ? 'text-indigo-400' : 'text-zinc-600'}`} />
+               {canUseAi ? (
+                  <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-md font-bold uppercase">Đã mở</span>
+               ) : (
+                  <span className="text-xs bg-rose-500/10 text-rose-500 px-2 py-1 rounded-md font-bold uppercase">Khoá</span>
+               )}
+            </div>
+            <h3 className={`text-xl font-bold mb-2 ${canUseAi ? 'text-white' : 'text-zinc-600'}`}>Tạo Báo cáo bằng AI</h3>
+            <p className={canUseAi ? 'text-zinc-400' : 'text-zinc-600'}>
+               Sử dụng mô hình AI tiên tiến để đọc hiểu dữ liệu trong Workspace này.
+            </p>
+            <div className="mt-6">
+               <button disabled={!canUseAi} className={`px-5 py-2.5 rounded-xl font-semibold transition w-full ${canUseAi ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}>
+                  {canUseAi ? 'Khởi động AI' : 'Yêu cầu gói VIP'}
+               </button>
+            </div>
+         </div>
+
+         {/* Tính năng Export PDF */}
+         <div className={`rounded-2xl border p-8 transition-all relative overflow-hidden ${canExportPdf ? 'border-rose-500/50 bg-rose-500/5 hover:bg-rose-500/10' : 'border-dashed border-zinc-800 bg-zinc-900/50'}`}>
+            <div className="flex justify-between items-start mb-4">
+               <FileType className={`w-8 h-8 ${canExportPdf ? 'text-rose-400' : 'text-zinc-600'}`} />
+               {canExportPdf ? (
+                  <span className="text-xs bg-rose-500/20 text-rose-400 px-2 py-1 rounded-md font-bold uppercase">Đã mở</span>
+               ) : (
+                  <span className="text-xs bg-rose-500/10 text-rose-500 px-2 py-1 rounded-md font-bold uppercase">Khoá</span>
+               )}
+            </div>
+            <h3 className={`text-xl font-bold mb-2 ${canExportPdf ? 'text-white' : 'text-zinc-600'}`}>Xuất PDF Tốc độ cao</h3>
+            <p className={canExportPdf ? 'text-zinc-400' : 'text-zinc-600'}>
+               Đóng gói dữ liệu ra định dạng in ấn chuyên nghiệp không giới hạn trang.
+            </p>
+            <div className="mt-6">
+               <button disabled={!canExportPdf} className={`px-5 py-2.5 rounded-xl font-semibold transition w-full ${canExportPdf ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}>
+                  {canExportPdf ? 'Tải PDF Xuống' : 'Yêu cầu gói Premium'}
+               </button>
+            </div>
+         </div>
       </div>
     </>
   );

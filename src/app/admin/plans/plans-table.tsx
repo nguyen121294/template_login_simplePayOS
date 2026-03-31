@@ -17,6 +17,7 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
     days: 30,
     description: '',
     features: [],
+    maxWorkspaces: 1,
   };
 
   const handleSavePlan = async (e: React.FormEvent) => {
@@ -96,12 +97,23 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
-                <button 
-                  onClick={() => handleDeletePlan(plan.id)}
-                  className="p-2 rounded-lg hover:bg-red-500/10 text-zinc-400 hover:text-red-400 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {plan.id !== 'free' ? (
+                   <button 
+                     onClick={() => handleDeletePlan(plan.id)}
+                     className="p-2 rounded-lg hover:bg-red-500/10 text-zinc-400 hover:text-red-400 transition"
+                     title="Xoá gói này"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                ) : (
+                   <button 
+                     disabled
+                     className="p-2 rounded-lg text-zinc-600 transition cursor-not-allowed"
+                     title="Gói Free là gói cố định, không thể xoá"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                )}
               </div>
             </div>
 
@@ -110,6 +122,7 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price)}
               </div>
               <div className="text-sm text-zinc-500">{plan.days} ngày sử dụng</div>
+              <div className="text-sm text-zinc-500 mt-1 font-semibold text-emerald-500/80">Quản lý tới: {plan.maxWorkspaces} Không gian</div>
             </div>
 
             <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{plan.description || 'Không có mô tả'}</p>
@@ -195,6 +208,19 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                 </div>
 
                 <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">Số lượng Không gian (Workspaces) tối đa cho phép</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={editingPlan.maxWorkspaces || 1}
+                    onChange={(e) => setEditingPlan({...editingPlan, maxWorkspaces: Number(e.target.value)})}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-bold text-emerald-400"
+                    required
+                  />
+                  <p className="text-xs text-zinc-500 mt-2">Ví dụ: Mặc định đặt là 1 (nghĩa là user được tạo 1 phòng). VIP đặt 999.</p>
+                </div>
+
+                <div className="col-span-1 md:col-span-2">
                   <label className="block text-sm font-medium text-zinc-400 mb-2">Mô tả ngắn</label>
                   <textarea 
                     value={editingPlan.description || ''}
@@ -205,14 +231,17 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                 </div>
 
                 <div className="col-span-1 md:col-span-2">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Tính năng (Mỗi dòng một tính năng)</label>
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">
+                    Tính năng / Chìa Khoá Mở Khoá (Feature Keys) - Mỗi dòng một tính năng
+                  </label>
                   <textarea 
-                    value={editingPlan.features.join('\n')}
+                    value={editingPlan.features?.join('\n') || ''}
                     onChange={(e) => setEditingPlan({...editingPlan, features: e.target.value.split('\n').filter(f => f.trim())})}
                     rows={5}
-                    placeholder="Truy cập VIP&#10;Hỗ trợ 24/7"
+                    placeholder="Truy cập VIP&#10;Hỗ trợ 24/7&#10;export_pdf&#10;ai_model"
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
+                  <p className="text-xs text-zinc-500 mt-2">Dùng chữ thường như "export_pdf", "ai_bot" để dev có thể khóa/mở bằng code.</p>
                 </div>
               </div>
 

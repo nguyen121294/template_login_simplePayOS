@@ -21,6 +21,7 @@ export async function POST(request: Request) {
         days: plan.days,
         description: plan.description,
         features: plan.features,
+        maxWorkspaces: plan.maxWorkspaces || 1,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
           days: plan.days,
           description: plan.description,
           features: plan.features,
+          maxWorkspaces: plan.maxWorkspaces || 1,
           updatedAt: new Date(),
         }
       });
