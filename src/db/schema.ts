@@ -31,3 +31,20 @@ export const plans = table('plans', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export const workspaces = table('workspaces', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  ownerId: text('owner_id').references(() => profiles.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const workspaceMembers = table('workspace_members', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  role: text('role').notNull().default('member'), // owner, admin, member
+  joinedAt: timestamp('joined_at').defaultNow(),
+});
+
