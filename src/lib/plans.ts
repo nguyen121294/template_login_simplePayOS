@@ -11,6 +11,7 @@ export type Plan = {
   description: string | null;
   features: string[];
   maxWorkspaces: number;
+  maxInvites: number;
 };
 
 // Cache the plans fetch for the duration of the request
@@ -45,5 +46,5 @@ export const getPlan = cache(async (planId: string): Promise<Plan | null> => {
 
 // For backward compatibility during refactoring if needed, but we should update callers
 export const PLANS_PLACEHOLDER = {
-  free: { id: 'free', name: 'Free', price: 0, days: 0, description: 'Dùng thử miễn phí', features: [], maxWorkspaces: 1 },
+  free: { id: 'free', name: 'Free', price: 0, days: 0, description: 'Dùng thử miễn phí', features: [], maxWorkspaces: 1, maxInvites: 0 },
 };

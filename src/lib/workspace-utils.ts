@@ -33,7 +33,7 @@ export async function checkWorkspaceAccess(workspaceId: string): Promise<boolean
 
 /**
  * Đếm số lượng người tham gia DUY NHẤT (Unique Users) trong tất cả các Workspace
- * do một user làm chủ. Để chặn khi mời quá Quota.
+ * do một user làm chủ. Để chặn khi mời quá Quota cấu hình trong gói.
  */
 export async function checkInviteQuota(ownerId: string): Promise<{ canInvite: boolean; used: number; total: number }> {
   // 1. Tìm tất cả các Workspace do ownerId làm chủ
@@ -41,23 +41,31 @@ export async function checkInviteQuota(ownerId: string): Promise<{ canInvite: bo
     .from(workspaces)
     .where(eq(workspaces.ownerId, ownerId));
 
+  // 1b. Truy vấn gói hiện tại của Owner để xem được mời bao nhiêu người
+  const ownerProfile = await db.select({ subId: profiles.subscriptionId, subStatus: profiles.subscriptionStatus })
+    .from(profiles)
+    .where(eq(profiles.id, ownerId))
+    .limit(1);
+
+  let activePlanId = 'free';
+  if (ownerProfile && ownerProfile.length > 0 && ownerProfile[0].subStatus === 'active') {
+      activePlanId = ownerProfile[0].subId || 'free';
+  }
+
+  const currentPlan = await db.select({ maxInvites: plans.maxInvites })
+    .from(plans)
+    .where(eq(plans.id, activePlanId))
+    .limit(1);
+
+  const totalAllowed = (currentPlan && currentPlan.length > 0) ? currentPlan[0].maxInvites : 0; // Mặc định Free có thể là 0.
+
   if (ownerWorkspaces.length === 0) {
-    return { canInvite: true, used: 0, total: MAX_INVITES_PER_VIP_OWNER };
+    return { canInvite: true, used: 0, total: totalAllowed };
   }
 
   const workspaceIds = ownerWorkspaces.map(w => w.id);
 
-  // 2. Vì db.select().countDistinct chưa hỗ trợ mảng IN hoàn hảo theo API mới, 
-  // tính qua việc lấy list unique users thuộc các workspaces này (loại trừ chính owner)
-  const members = await db.select({ userId: workspaceMembers.userId })
-    .from(workspaceMembers)
-    .where(and(
-      // Note: do not use inArray here if possible to keep simple, but drizzle 'inArray' works
-      // using manual map filtering as fallback if we don't import inArray. Let's do a simple query.
-    ));
-
-  // Tạm tính Drizzle logic (Sẽ tối ưu truy vấn sau): 
-  // Rút danh sách userId duy nhất đang tồn tại trong các workspace đó
+  // Tạm tính Drizzle logic: Rút danh sách userId duy nhất đang tồn tại trong các workspace đó
   const allMembers = await db.select()
     .from(workspaceMembers);
     
@@ -71,9 +79,9 @@ export async function checkInviteQuota(ownerId: string): Promise<{ canInvite: bo
 
   const used = uniqueMemberIds.size;
   return { 
-    canInvite: used < MAX_INVITES_PER_VIP_OWNER, 
+    canInvite: used < totalAllowed, 
     used, 
-    total: MAX_INVITES_PER_VIP_OWNER 
+    total: totalAllowed 
   };
 }
 

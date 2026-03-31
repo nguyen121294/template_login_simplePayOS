@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { verifyAdminSession, removeAdminSession } from '@/lib/admin-auth';
-import { LayoutDashboard, Users, CreditCard, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, ExternalLink, Folders } from 'lucide-react';
 
 export default async function AdminLayout({
   children,
@@ -24,6 +24,7 @@ export default async function AdminLayout({
     { label: 'Dashboard', href: `/admin/dashboard`, icon: LayoutDashboard },
     { label: 'Người dùng', href: `/admin/users`, icon: Users },
     { label: 'Gói dịch vụ', href: `/admin/plans`, icon: CreditCard },
+    { label: 'Không gian (Rooms)', href: `/admin/workspaces`, icon: Folders },
   ];
 
   return (

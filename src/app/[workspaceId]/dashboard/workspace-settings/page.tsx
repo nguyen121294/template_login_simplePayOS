@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { profiles, workspaces, workspaceMembers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { inviteMemberAction, removeMemberAction, transferOwnershipAction } from './actions';
-import { Users, UserPlus, Crown, Trash2, ShieldAlert } from 'lucide-react';
+import { Users, UserPlus, Crown, ShieldAlert } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { checkInviteQuota } from '@/lib/workspace-utils';
+import { InviteMemberForm, TransferOwnershipButton, RemoveMemberButton } from './client-components';
 
 export default async function WorkspaceSettingsPage({
   params,
@@ -68,36 +68,7 @@ export default async function WorkspaceSettingsPage({
              )}
           </div>
           
-          <form action={async (formData) => {
-            'use server';
-            const email = formData.get('email') as string;
-            if (!email) return;
-            // Thực thi server action
-            const res = await inviteMemberAction(workspaceId, email);
-            // Có thể dùng useActionState ở Client Component để hứng lỗi UI đẹp hơn, 
-            // hiện tại chạy ngầm server logic.
-            if(res.error) console.log("Lỗi mời: ", res.error);
-          }}>
-            <div className="flex gap-4">
-              <input 
-                type="email" 
-                name="email"
-                required
-                placeholder="Nhập địa chỉ email của thành viên..." 
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              />
-              <button 
-                type="submit" 
-                disabled={!quotaInfo?.canInvite}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Gửi Lời Mời
-              </button>
-            </div>
-            {!quotaInfo?.canInvite && (
-               <p className="mt-2 text-sm text-rose-500">Bạn đã dùng hết hạn mức mời của gói. Vui lòng xoá bớt người cũ để thêm người mới.</p>
-            )}
-          </form>
+          <InviteMemberForm workspaceId={workspaceId} quotaCanInvite={quotaInfo?.canInvite || false} />
         </div>
       )}
 
@@ -136,23 +107,8 @@ export default async function WorkspaceSettingsPage({
                      {/* Các nút Hành động chỉ cho Owner */}
                      {isOwner && !isMemOwner && (
                        <div className="flex items-center gap-2 border-l border-zinc-800 pl-3 ml-2">
-                          <form action={async () => {
-                            'use server';
-                            await transferOwnershipAction(workspaceId, member.userId);
-                          }}>
-                            <button type="submit" title="Chuyển nhượng Căn phòng cho Tên này" className="p-2 text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition">
-                               <Crown className="w-5 h-5" />
-                            </button>
-                          </form>
-
-                          <form action={async () => {
-                            'use server';
-                            await removeMemberAction(workspaceId, member.userId);
-                          }}>
-                            <button type="submit" title="Đuổi khỏi phòng" className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition">
-                               <Trash2 className="w-5 h-5" />
-                            </button>
-                          </form>
+                          <TransferOwnershipButton workspaceId={workspaceId} userId={member.userId} />
+                          <RemoveMemberButton workspaceId={workspaceId} userId={member.userId} />
                        </div>
                      )}
                   </div>

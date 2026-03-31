@@ -22,17 +22,18 @@ export default async function DashboardHub() {
 
   const workspaceListObj = await db.select({
        id: workspaces.id,
-       name: workspaces.name
+       name: workspaces.name,
+       ownerId: workspaces.ownerId
   }).from(workspaces);
 
   const allowedWorkspaces = workspaceListObj
     .filter(ws => userMemberships.some(m => m.workspaceId === ws.id))
     .map(ws => {
-       const membership = userMemberships.find(m => m.workspaceId === ws.id);
+       const isOwner = ws.ownerId === user.id;
        return {
          id: ws.id,
          name: ws.name,
-         role: membership?.role || 'member'
+         role: isOwner ? 'owner' : 'member'
        };
     });
 

@@ -18,6 +18,7 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
     description: '',
     features: [],
     maxWorkspaces: 1,
+    maxInvites: 5,
   };
 
   const handleSavePlan = async (e: React.FormEvent) => {
@@ -122,7 +123,8 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price)}
               </div>
               <div className="text-sm text-zinc-500">{plan.days} ngày sử dụng</div>
-              <div className="text-sm text-zinc-500 mt-1 font-semibold text-emerald-500/80">Quản lý tới: {plan.maxWorkspaces} Không gian</div>
+              <div className="text-sm text-zinc-500 mt-1 font-semibold text-emerald-500/80">Phòng tối đa: {plan.maxWorkspaces}</div>
+              <div className="text-sm text-zinc-500 font-semibold text-blue-500/80">Thành viên mời: {plan.maxInvites} người</div>
             </div>
 
             <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{plan.description || 'Không có mô tả'}</p>
@@ -218,6 +220,19 @@ export default function PlansTable({ initialPlans }: { initialPlans: Plan[] }) {
                     required
                   />
                   <p className="text-xs text-zinc-500 mt-2">Ví dụ: Mặc định đặt là 1 (nghĩa là user được tạo 1 phòng). VIP đặt 999.</p>
+                </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">Số lượng Người được Mời (Max Invites limit) cho mỗi Chủ phòng</label>
+                  <input 
+                    type="number"
+                    min="0"
+                    value={editingPlan.maxInvites ?? 0}
+                    onChange={(e) => setEditingPlan({...editingPlan, maxInvites: Number(e.target.value)})}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold text-blue-400"
+                    required
+                  />
+                  <p className="text-xs text-zinc-500 mt-2">Ví dụ: Gói Free = 0, Gói Pro = 5 (mời đc 5 dân mạng vào xài ké).</p>
                 </div>
 
                 <div className="col-span-1 md:col-span-2">

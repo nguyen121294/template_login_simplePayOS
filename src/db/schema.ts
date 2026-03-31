@@ -29,6 +29,7 @@ export const plans = table('plans', {
   description: text('description'),
   features: text('features').array(), // Drizzle array type for postgres
   maxWorkspaces: integer('max_workspaces').notNull().default(1),
+  maxInvites: integer('max_invites').notNull().default(5),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
