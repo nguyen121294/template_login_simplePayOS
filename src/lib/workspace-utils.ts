@@ -3,6 +3,8 @@ import { workspaces, workspaceMembers, profiles } from '@/db/schema';
 import { eq, and, countDistinct } from 'drizzle-orm';
 
 const MAX_INVITES_PER_VIP_OWNER = 5; // Có thể chuyển thành config env sau
+const MAX_WORKSPACES_DEFAULT = 1; // Gói Free tạo tối đa 1 phòng
+const MAX_WORKSPACES_VIP = 999; // Lát nữa check nếu là gói VIP thì vô số phòng
 
 /**
  * Kiểm tra xem Workspace hiện tại có phải là trạng thái VIP hay không, 
@@ -152,4 +154,34 @@ export async function inviteUserByEmail(workspaceId: string, inviterId: string, 
   });
 
   return { success: true };
+}
+
+/**
+ * Kiểm tra xem User này còn được quyền tạo thêm Workspace mới hay không?
+ */
+export async function checkWorkspaceCreationQuota(userId: string): Promise<{ canCreate: boolean; used: number; total: number }> {
+  // Lấy tổng số phòng user hiện ĐANG LÀM CHỦ
+  const ownerWorkspaces = await db.select({ id: workspaces.id })
+    .from(workspaces)
+    .where(eq(workspaces.ownerId, userId));
+  
+  const used = ownerWorkspaces.length;
+
+  // Lấy gói cước hiện tại của User
+  const ownerProfile = await db.select({ subStatus: profiles.subscriptionStatus })
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
+
+  const isVip = ownerProfile && ownerProfile.length > 0 && ownerProfile[0].subStatus === 'active';
+  
+  // Logic giới hạn: Vip = 999 (hoặc vô hạn), Free = 1 phòng mặc định.
+  // Ở đây admin có thể tích hợp đọc config từ DB table `plans` trong tương lai.
+  const totalAllowed = isVip ? MAX_WORKSPACES_VIP : MAX_WORKSPACES_DEFAULT;
+
+  return {
+    canCreate: used < totalAllowed,
+    used,
+    total: totalAllowed
+  };
 }
