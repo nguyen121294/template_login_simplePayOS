@@ -1,33 +1,116 @@
-# CHI TIẾT NHIỆM VỤ CÁC FILE TRONG DỰ ÁN
+# THÔNG TIN DỰ ÁN & HƯỚNG DẪN TÍNH NĂNG (PROJECT INFO)
 
-Dưới đây là mô tả chi tiết nhiệm vụ và chức năng của từng file trong dự án Next.js SaaS Starter này:
+Văn bản này tóm tắt trọn vẹn mọi lưu ý quan trọng để làm chủ và phát triển Boilerplate (Template) SaaS khởi điểm tích hợp Đăng nhập Supabase và Thanh toán bằng PayOS.
 
-## 1. Thư mục gốc (Root Directory)
-- `package.json`: Chứa thông tin về dự án, danh sách các thư viện hỗ trợ (dependencies) và các câu lệnh thực thi (scripts) như build, dev, lint.
-- `drizzle.config.ts`: File cấu hình cho Drizzle ORM, dùng để quản lý schema database và tạo các bản cập nhật (migrations).
-- `next.config.mjs`: Cấu hình cho framework Next.js (ví dụ: tối ưu hình ảnh, các biến môi trường).
-- `src/middleware.ts`: Chạy trên mọi request để kiểm tra hoặc cập nhật session của người dùng (thông qua Supabase middleware).
+---
 
-## 2. Thư mục Cơ sở dữ liệu (src/db)
-- `src/db/index.ts`: Khởi tạo kết nối với cơ sở dữ liệu PostgreSQL sử dụng thư viện `postgres.js` và `drizzle-orm`.
-- `src/db/schema.ts`: Định nghĩa cấu trúc các bảng trong cơ sở dữ liệu, bao gồm bảng `users` (thông tin người dùng, trạng thái gói dịch vụ) và bảng `payments` (lịch sử thanh toán qua PayOS).
+## 1. Hướng dẫn cài đặt Template (Database & Triggers)
 
-## 3. Thư mục Thư viện & Tiện ích (src/lib)
-- `src/lib/payos.ts`: Khởi tạo đối tượng PayOS với API Key và Client ID để thực hiện các giao dịch thanh toán.
-- `src/lib/supabase/client.ts`: Cấu hình Supabase client để sử dụng ở phía Client Component.
-- `src/lib/supabase/server.ts`: Cấu hình Supabase client để sử dụng ở phía Server Component, Server Action hoặc Route Handler.
-- `src/lib/supabase/middleware.ts`: Xử lý việc làm mới (refresh) session của người dùng tự động khi họ truy cập ứng dụng.
+Để khởi chạy dự án SaaS Template này một cách trơn tru, bạn cần tuân thủ các bước thiết lập cơ sở dữ liệu trên **Supabase**:
 
-## 4. Các Tuyến đường & Giao diện (src/app)
-- `src/app/layout.tsx`: Layout gốc của ứng dụng, chứa cấu trúc HTML cơ bản và các font chữ.
-- `src/app/page.tsx`: Trang chủ (Landing Page) giới thiệu các tính năng của dự án.
-- `src/app/globals.css`: File định nghĩa các style CSS toàn cục, sử dụng Tailwind CSS.
-- `src/app/login/page.tsx`: Trang đăng nhập, hỗ trợ đăng nhập qua email (Magic Link).
-- `src/app/dashboard/page.tsx`: Trang quản lý cá nhân sau khi đăng nhập, hiển thị trạng thái gói dịch vụ (Free/PRO) và các tính năng tương ứng.
-- `src/app/success/page.tsx`: Trang thông báo khi người dùng thực hiện thanh toán thành công.
+### Bước 1: Migrate Schema từ máy Local lên Supabase
+Xây dựng các bảng dữ liệu (như `profiles`, `plans`, `workspaces`, `workspace_members`, v.v.) bằng lệnh Drizzle ORM có sẵn trong `package.json`:
+```bash
+npm run db:push
+```
+Lệnh này sẽ lấy thiết kế cấu trúc từ file `src/db/schema.ts` đồng bộ lên môi trường PostgreSQL Database của bạn trên Supabase.
 
-## 5. Các API & Route Handlers
-- `src/app/checkout/route.ts`: API tạo yêu cầu thanh toán với PayOS, sau đó chuyển hướng người dùng đến trang thanh toán của PayOS.
-- `src/app/api/webhook/payos/route.ts`: Điểm tiếp nhận thông báo (webhook) từ PayOS. Khi thông báo thanh toán thành công, nó sẽ cập nhật trạng thái gói dịch vụ của người dùng trong database.
-- `src/app/auth/callback/route.ts`: Xử lý mã xác thực sau khi người dùng click vào link đăng nhập từ email.
-- `src/app/auth/signout/route.ts`: Xử lý yêu cầu đăng xuất người dùng khỏi ứng dụng.
+### Bước 2: Thiết lập Triggers đồng bộ User từ Supabase Auth (Quá Quan Trọng)
+Vì dự án quản lý thông tin Account riêng tại bảng `public.profiles`, bạn cần tạo một **Trigger** cấp Database trên Supabase để nó tự động bốc dữ liệu thả vào bảng này mỗi khi một User đăng ký mới qua hệ thống xác thực Auth mặc định (`auth.users`).
+1. Mở trang quản trị dự án trên Supabase -> Chọn **SQL Editor**.
+2. Mở file `database_setup.sql` ở thư mục gốc của dự án.
+3. Sao chép và dán toàn bộ lệnh SQL vào cửa sổ Editor của Supabase.
+4. Bấm chạy script (Run - Có thể chạy nhiều lần vì đã có lệnh DROP IF EXISTS).
+*(Đoạn script này có chức năng tạo hàm phân giải dữ liệu JSON `handle_new_user()` và gắn Trigger kích nổ `on_auth_user_created` vào `auth.users`. Đồng thời insert dữ liệu gói Mặc Định 'Free' vào bảng list Gói).*
+
+---
+
+## 2. Chi tiết các Tính năng Ràng buộc của Workflow Không Gian (Workspace)
+
+Dự án ứng dụng mô hình Workspace đa người dùng (Multi-tenant SaaS) với các quy tắc và giới hạn chặt chẽ phụ thuộc linh động vào Gói Cước (Plans) mà người dùng đang nạp.
+
+### 2.1 Quyền lực bao trùm của Chủ Sở Hữu (Owner)
+Trạng thái của một Workspace hoàn toàn được quyết định bởi gói cước của người sinh ra nó (Chủ Sở Hữu). Nếu Owner nâng cấp gói PRO, mọi Workspace nằm dưới quyền của Owner đó sẽ chuyển sang trạng thái **VIP WORKSPACE** và TẤT CẢ các thành viên được cấp quyền vào trong đều được hưởng ké tính năng sang trọng này.
+* Tại các file giao diện, hệ thống check biến cục bộ `getWorkspacePlanDetails(workspaceId)` thay vì trạng thái cá nhân. 
+* Nhân viên có tài khoản "Free" vẫn xài hàng "VIP" nếu tham gia phòng của Sếp VIP. Tuy nhiên, khi ra khỏi phòng đó, ví của nhân viên vẫn là hệ Free.
+
+### 2.2 Ràng buộc Hạn mức (Quotas Limits)
+2 Giới hạn lớn nhất của người dùng được kiểm soát tự động qua tiện ích lõi `lib/workspace-utils.ts`:
+* **Hạn mức Tượng Phòng (Workspace Creation Quota)**: Một user bị giới hạn số lượng phòng có thể LÀM CHỦ (quy định linh động ở `plans.max_workspaces`). Tạo quá giới hạn nút sẽ block xám.
+* **Hạn mức Lắp Đầy Thành Viên (Invite Quota)**: Kiểm soát gắt gao số lượng người dùng **duy nhất** (Unique User) mà Chủ sở hữu cấu thành qua tất cả Workspace hệ sinh thái của mình (quy định ở `plans.max_invites`). Nếu đã vượt băng thông Invite, hệ thống từ chối mail gởi mới. 
+
+### 2.3 Ràng buộc Sang tay (Transfer Ownership)
+Người làm chủ (Owner) có quyền bàn giao Chìa khoá Workspace cho một Member khác với quy tắc duy nhất: Người nhận **bắt buộc phải đang là một Tài khoản VIP**. Thiết kế này nhằm ngăn cấm hành vi chuyển nhượng lách luật biến một Tài khoản Free sở hữu một Phòng VVIP.
+
+---
+
+## 3. Kiến trúc Cây Thư Mục & Vai Trò (File / Folder Overview)
+
+App Router của Next.js đã được quy hoạch rõ ràng cho từng nghiệp vụ. Dưới đây là giải thích luồng của thư mục `src`:
+
+### 3.1. Thư mục Cơ sở dữ liệu (src/db)
+- `index.ts`: Khởi tạo sợi dây kết nối với PostgreSQL URL của bạn bằng thư viện `drizzle-orm`.
+- `schema.ts`: Bản đồ thiết kế Database bao gồm `profiles` (bản sao user), `plans` (tuỳ chỉnh các gói VIP), `workspaces` (vùng làm việc đội nhóm), `workspace_members` và `payments` (lưu trữ mã OD thanh toán qua PayOS).
+
+### 3.2. Tiện ích & Middleware (src/lib)
+- `payos.ts`: Trái tim thanh toán. Khởi tạo đối tượng môi trường API Key để đẩy req qua ngân hàng.
+- `supabase/client.ts`, `server.ts`: Module mồi tạo Supabase Browser Client riêng và môi trường cục bộ Server.
+- `workspace-utils.ts`: Bộ máy pháp lý chứa toàn bộ Logic ràng buộc Quotas, Check Level VIP, Access Feature Từng gói (`checkFeatureAccess`, `checkWorkspaceCreationQuota`).
+ 
+### 3.3. Module Router của Framework Next.js (src/app)
+- `(auth module) /login, /login-admin, /update-password, /auth/callback`: Tổ hợp Router quản lý phiên đăng nhập Login Link, xử lý Token đổi mật khẩu phục vụ cho Admin / Client.
+- `admin/`: Khu vực **Siêu Quản Trị Hệ Thống** dành riêng cho tài khoản SuperAdmin.
+  - `layout.tsx`: Sidebar menu chứa Client-Side Component Button Đăng xuất mượt mà.
+  - `plans/`, `users/`, `workspaces/`: Các Panel điều chỉnh bảng giá gói cước, Cấm User, Quản lý không gian trên hệ thống. 
+- `dashboard/`: Cổng Trạm Dừng Chân Tổng của cá nhân trước khi nhào vào Workspace.
+  - `page.tsx`: Màn hình giao diện báo cáo tình trạng ví Cá nhân và Panel hiển thị các List Phòng Đang Tham gia.
+  - `account/`: Chứa file React `client-view.tsx`, nơi thay đổi thông tin Họ tên, Email và khu vực Đổi Password. Đặt Global bên ngoài phòng ban.
+- `[workspaceId]/`: Con đẻ của dự án, mỗi Workspace là một ID Router động mang bản sắc tách biệt (Ví dụ: `/uuid-sieu-cap/dashboard`).
+  - `dashboard/page.tsx`: Landing Page bên trong không gian làm việc. Hiển thị Status Phòng VIP / Free và các công cụ riêng nội bộ.
+  - `dashboard/workspace-settings/page.tsx`: Bảng quản trị riêng Nhóm. Cấp quyền mời thêm email mới, danh sách nhân viên và nút Chuyển Nhượng Chủ/Rời phòng đính kèm các ràng buộc API logic.
+
+### 3.4. Module API Tương tác Endpoint (API Route)
+- `api/webhook/payos/route.ts`: Tai nghe Webhook cực kỳ quan trọng trực chờ tín hiệu bắn qua từ cổng PayOS nếu có người dùng chuyển tiền thành công. Auto tự update thẻ trạng thái SubscriptonID và Status cho Member.
+- `checkout/route.ts`: API đứng ra tạo mã yêu cầu QR Request gửi về phía React Component khi người dùng ấn nút nâng cấp gói Pro.
+
+---
+
+## 4. Hướng dẫn Triển khai (Deployment)
+
+Dự án Next.js này có thể dễ dàng được triển khai lên hai nền tảng phổ biến nhất là Vercel và Netlify. Trước khi deploy, hãy đảm bảo bạn đã chuẩn bị sẵn kho lưu trữ mã nguồn trên GitHub (hoặc GitLab/Bitbucket) và đã điền đủ các biến môi trường (Environment Variables) trong file `.env.local` ở máy mạch.
+
+### 4.1. Cấu hình Biến Môi trường (Environment Variables) bắt buộc
+Dù bạn chọn nền tảng nào, hãy chắc chắn Copy toàn bộ các khoá bảo mật từ file `.env.local` lên phần Settings > Environment Variables của dự án trên nền tảng. Bao gồm:
+* `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+* `SUPABASE_SERVICE_ROLE_KEY` (Rất quan trọng cho Server Action)
+* `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`
+* `DATABASE_URL` (URL kết nối DB từ Supabase)
+* `ADMIN_PASSWORD` (Mật khẩu tự setup cho Admin Panel)
+
+### 4.2. Triển khai lên Vercel (Khuyên dùng cho Next.js)
+Vercel là nền tảng mẹ của Framework Next.js, mang lại khả năng cấu hình Zero-Config:
+1. Truy cập [Vercel Dashboard](https://vercel.com) và chọn **Add New Project**.
+2. Liên kết tài khoản GitHub của bạn và chọn kho chứa mã nguồn (Repository) của dự án này.
+3. Trong bảng cài đặt Import Project:
+   - Framework Preset: Vercel tự động nhận diện `Next.js`.
+   - Root Directory: Để nguyên gốc `/`.
+   - Build Command: Mặc định (`npm run build`).
+4. Bấm chổ **Environment Variables** và Paste đồng loạt các thông số bảo mật ở mục 4.1 vào.
+5. Nhấn nút **Deploy** và chờ vài phút. Vercel sẽ tự xử lý Build, phân luồng Server Server/Client Middleware mượt mà.
+
+### 4.3. Triển khai lên Netlify
+Netlify cũng là một bên cực kỳ mạnh và hỗ trợ Next.js thông qua plugin Netlify-Nextjs. 
+*Lưu ý: Mặc định code đã được tinh chỉnh loại thẻ Middleware lỗi thời nếu có.*
+1. Mở trang chủ tĩnh [Netlify Dashboard](https://app.netlify.com).
+2. Nhấn nút **Add new site** -> Chọn **Import an existing project** từ GitHub/GitLab.
+3. Chọn Repository từ danh sách thả xuống.
+4. Ở màn hình cấu hình Site Settings:
+   - Base Directory: Để rỗng hoặc `/`.
+   - Build Command: Khai báo lệnh `npm run build`
+   - Publish Directory: Nhập vào `.next` (Khu Next.js bundle code).
+5. Bấm nút **Add environment variables** bên dưới khung, khai báo toàn bộ các Key bảo mật giống mục 4.1.
+6. Bấm **Deploy site**. Tuy nhiên, Server Functions có thể delay xíu so với Vercel do Netlify phải Build lại Next.js Runtime, hãy kiên nhẫn đợi Log màu xanh Success nhé!
+
+> [!CAUTION] 
+> **Lưu ý Cổng Thanh Toán Webhook (PayOS)**
+> Sau khi Deploy thành công và có Link Server chính thức (ví dụ: `https://ten-du-an.vercel.app`), bạn **BẮT BUỘC** phải truy cập Dashboard của PayOS, vào mục Kênh Bán Hàng, điền lại Link Webhook thành: `https://ten-du-an.vercel.app/api/webhook/payos` thì hệ thống mới nhảy tiền Tự Động được nhé!
