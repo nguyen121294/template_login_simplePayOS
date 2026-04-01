@@ -247,3 +247,46 @@ export async function checkFeatureAccess(workspaceId: string, featureKey: string
   // Kiểm tra xem array có chứa Feature Key yêu cầu hay không
   return featuresArray.includes(featureKey);
 }
+
+/**
+ * Lấy thông tin chi tiết tên gói của Người dùng
+ */
+export async function getUserPlanDetails(userId: string): Promise<{ isVip: boolean; planName: string }> {
+  const userProfile = await db.select({ 
+      subId: profiles.subscriptionId,
+      subStatus: profiles.subscriptionStatus 
+    })
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
+
+  if (!userProfile || userProfile.length === 0 || userProfile[0].subStatus !== 'active') {
+    return { isVip: false, planName: 'Gói Miễn phí (Free)' };
+  }
+
+  const planId = userProfile[0].subId || 'free';
+  const planData = await db.select({ name: plans.name })
+    .from(plans)
+    .where(eq(plans.id, planId))
+    .limit(1);
+
+  if (!planData || planData.length === 0) {
+    return { isVip: false, planName: 'Gói Miễn phí (Free)' };
+  }
+
+  return { isVip: true, planName: planData[0].name };
+}
+
+/**
+ * Lấy thông tin chi tiết tên gói của Workspace (dựa vào Owner)
+ */
+export async function getWorkspacePlanDetails(workspaceId: string): Promise<{ isVip: boolean; planName: string }> {
+  const ws = await db.select({ ownerId: workspaces.ownerId })
+    .from(workspaces)
+    .where(eq(workspaces.id, workspaceId))
+    .limit(1);
+
+  if (!ws || ws.length === 0) return { isVip: false, planName: 'Gói Miễn phí (Free)' };
+
+  return getUserPlanDetails(ws[0].ownerId);
+}

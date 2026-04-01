@@ -5,6 +5,7 @@ import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { LogOut, ChevronLeft } from 'lucide-react';
 import AccountClientView from './client-view';
+import { getUserPlanDetails } from '@/lib/workspace-utils';
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -21,6 +22,8 @@ export default async function AccountPage() {
   } catch (error) {
     console.error('Account DB Query Error:', error);
   }
+
+  const { planName } = await getUserPlanDetails(user.id);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -57,6 +60,7 @@ export default async function AccountPage() {
           subscriptionStatus={dbUser?.subscriptionStatus || 'inactive'}
           subscriptionExpiresAt={dbUser?.subscriptionExpiresAt || null}
           subscriptionId={dbUser?.subscriptionId || 'free'}
+          planName={planName}
         />
       </main>
     </div>

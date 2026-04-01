@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { verifyAdminSession, removeAdminSession } from '@/lib/admin-auth';
 import { LayoutDashboard, Users, CreditCard, LogOut, ExternalLink, Folders } from 'lucide-react';
+import LogoutAdminButton from './logout-button';
 
 export default async function AdminLayout({
   children,
@@ -60,15 +61,7 @@ export default async function AdminLayout({
             <ExternalLink className="w-5 h-5" />
             <span>Xem Website</span>
           </Link>
-          <form action={handleLogout}>
-            <button
-              type="submit"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Đăng xuất</span>
-            </button>
-          </form>
+          <LogoutAdminButton action={handleLogout} />
         </div>
       </aside>
 

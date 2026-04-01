@@ -11,6 +11,7 @@ interface Props {
   subscriptionStatus: string;
   subscriptionExpiresAt: Date | null;
   subscriptionId: string;
+  planName: string;
 }
 
 export default function AccountClientView({
@@ -19,7 +20,8 @@ export default function AccountClientView({
   lastName: initialLastName,
   subscriptionStatus,
   subscriptionExpiresAt,
-  subscriptionId
+  subscriptionId,
+  planName
 }: Props) {
   const [firstName, setFirstName] = useState(initialFirstName || '');
   const [lastName, setLastName] = useState(initialLastName || '');
@@ -100,7 +102,7 @@ export default function AccountClientView({
           <div>
             <div className="text-sm text-zinc-400 mb-1">Gói hiện tại</div>
             <div className={`font-semibold ${isSubscribed ? 'text-emerald-400' : 'text-zinc-300'}`}>
-              {isSubscribed ? 'PRO Account' : 'Free Tier'}
+              {isSubscribed ? planName : 'Free Tier'}
             </div>
           </div>
           <div className="h-px w-full md:w-px md:h-12 bg-zinc-800"></div>

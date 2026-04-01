@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { db } from '@/db';
 import { profiles, workspaces, workspaceMembers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { XCircle, AlertTriangle, RefreshCcw, LogOut } from 'lucide-react';
-import { reactivateAccount } from './account/actions';
+import { reactivateAccount } from '@/app/dashboard/account/actions';
 import WorkspaceSwitcher from '@/components/workspace-switcher';
 import { checkWorkspaceAccess } from '@/lib/workspace-utils';
 
@@ -94,9 +95,9 @@ export default async function DashboardLayout({
       <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-6">
-            <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+            <Link href="/dashboard" className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
               SaaS Starter
-            </div>
+            </Link>
             
             {/* WORKSPACE SWITCHER HERE */}
             <WorkspaceSwitcher 
@@ -110,12 +111,12 @@ export default async function DashboardLayout({
 
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-400">{user.email}</span>
-            <a href={`/${workspaceId}/dashboard/account`} className="text-sm font-medium text-zinc-300 hover:text-white transition">
+            <Link href="/dashboard/account" className="text-sm font-medium text-zinc-300 hover:text-white transition">
               Cài đặt Cá nhân
-            </a>
-            <a href={`/${workspaceId}/dashboard/workspace-settings`} className="text-sm font-medium text-blue-400 hover:text-white transition">
+            </Link>
+            <Link href={`/${workspaceId}/dashboard/workspace-settings`} className="text-sm font-medium text-blue-400 hover:text-white transition">
               Quản lý Team
-            </a>
+            </Link>
             <form action="/auth/signout" method="post">
               <button type="submit" className="text-zinc-400 hover:text-white transition" title="Đăng xuất">
                 <LogOut className="h-5 w-5" />

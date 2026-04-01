@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { CreditCard, CheckCircle2, XCircle, FileType, Bot } from 'lucide-react';
-import { checkWorkspaceAccess, checkFeatureAccess } from '@/lib/workspace-utils';
+import { checkWorkspaceAccess, checkFeatureAccess, getWorkspacePlanDetails } from '@/lib/workspace-utils';
 
 export default async function DashboardPage({
   params,
@@ -24,6 +24,7 @@ export default async function DashboardPage({
 
   // Thay vì check subscription cá nhân như cũ, check quyền VIP của Workspace hiện hành (dùng cho thông báo cấp độ)
   const isVipWorkspace = await checkWorkspaceAccess(workspaceId);
+  const { planName: workspacePlanName } = await getWorkspacePlanDetails(workspaceId);
 
   // [TÍNH NĂNG MỚI] Check chi tiết Từng Feature riêng biệt
   const canExportPdf = await checkFeatureAccess(workspaceId, 'export_pdf');
@@ -53,7 +54,7 @@ export default async function DashboardPage({
           </div>
           <div className="mt-4 relative z-10">
             <div className={`text-3xl font-bold ${isVipWorkspace ? 'text-emerald-400 bg-emerald-500/10 p-2 rounded-lg inline-block' : 'text-rose-400'}`}>
-              {isVipWorkspace ? '🌟 VIP WORKSPACE' : 'Free Tier'}
+              {isVipWorkspace ? `🌟 ${workspacePlanName}` : 'Free Tier'}
             </div>
             <p className="mt-2 text-sm text-zinc-400">
               {isVipWorkspace

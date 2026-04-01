@@ -5,7 +5,7 @@ import { workspaces, workspaceMembers, profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { LayoutDashboard, LogOut, CodeSquare, Crown, User, CreditCard } from 'lucide-react';
 import CreateWorkspaceModal from '@/components/create-workspace-modal';
-import { checkWorkspaceCreationQuota } from '@/lib/workspace-utils';
+import { checkWorkspaceCreationQuota, getUserPlanDetails } from '@/lib/workspace-utils';
 
 export default async function DashboardHub() {
   const supabase = await createClient();
@@ -41,8 +41,7 @@ export default async function DashboardHub() {
   const profileDetails = await db.select().from(profiles).where(eq(profiles.id, user.id)).limit(1);
   const dbUser = profileDetails[0];
 
-  const isPersonalVip = dbUser?.subscriptionStatus === 'active';
-  const planInfo = isPersonalVip ? 'Gói Đã Nâng Cấp (VIP)' : 'Gói Miễn phí (Free)';
+  const { isVip: isPersonalVip, planName: planInfo } = await getUserPlanDetails(user.id);
   
   // 3. Quota Tạo Phòng
   const quota = await checkWorkspaceCreationQuota(user.id);
