@@ -111,6 +111,7 @@ Netlify cũng là một bên cực kỳ mạnh và hỗ trợ Next.js thông qua
 5. Bấm nút **Add environment variables** bên dưới khung, khai báo toàn bộ các Key bảo mật giống mục 4.1.
 6. Bấm **Deploy site**. Tuy nhiên, Server Functions có thể delay xíu so với Vercel do Netlify phải Build lại Next.js Runtime, hãy kiên nhẫn đợi Log màu xanh Success nhé!
 
+
 > [!CAUTION] 
 > **Lưu ý Cổng Thanh Toán Webhook (PayOS)**
 > Sau khi Deploy thành công và có Link Server chính thức (ví dụ: `https://ten-du-an.vercel.app`), bạn **BẮT BUỘC** phải truy cập Dashboard của PayOS, vào mục Kênh Bán Hàng, điền lại Link Webhook thành: `https://ten-du-an.vercel.app/api/webhook/payos` thì hệ thống mới nhảy tiền Tự Động được nhé!
