@@ -18,20 +18,19 @@ export async function POST(request: Request) {
   let verifiedData;
   try {
     // PayOS SDK requires the body as-is for verification
-    //verifiedData = (payos as any).verifyPaymentWebhookData(body);
-    //console.log('[Webhook] Signature verified successfully');
-    verifiedData = body.data;
-    console.log('[Webhook] Tạm bỏ qua Verify');
+    verifiedData = (payos as any).verifyPaymentWebhookData(body);
+    console.log('[Webhook] Signature verified successfully');
   } catch (err) {
     console.error('[Webhook] Invalid signature verification failed');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   // Use the verified data for processing
-  const { orderCode, status } = verifiedData;
-  console.log(`[Webhook] Processing order ${orderCode} with status: ${status}`);
+  const { orderCode, code: paymentCode } = verifiedData;
+  console.log(`[Webhook] Processing order ${orderCode} with code: ${paymentCode}`);
 
-  if (status === 'PAID') {
+  // PayOS Webhook reports success using code '00'
+  if (paymentCode === '00') {
     try {
       // 1. Find the payment record to get userId and plan
       const payment = await db.query.payments.findFirst({
@@ -75,7 +74,9 @@ export async function POST(request: Request) {
       // We return 500 so PayOS might retry the webhook later
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
-  } else if (status === 'CANCELED' || status === 'CANCELLED' || status === 'FAILED') {
+  } else {
+    // If PayOS adds cancel webhooks in the future with different codes
+    console.log(`[Webhook] Order ${orderCode} received code ${paymentCode}, ignoring or marking failed.`);
     try {
       const payment = await db.query.payments.findFirst({
         where: eq(payments.id, String(orderCode)),
