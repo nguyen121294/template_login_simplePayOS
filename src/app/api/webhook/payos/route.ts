@@ -18,7 +18,8 @@ export async function POST(request: Request) {
   let verifiedData;
   try {
     // PayOS SDK requires the body as-is for verification
-    verifiedData = (payos as any).verifyPaymentWebhookData(body);
+    //verifiedData = (payos as any).verifyPaymentWebhookData(body);
+    verifiedData = await payos.webhooks.verify(body);
     console.log('[Webhook] Signature verified successfully');
     //verifiedData = body.data;
     //console.log('[Webhook] Tạm bỏ qua Verify');
